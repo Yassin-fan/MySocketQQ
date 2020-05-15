@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Send:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Send_jar</output-path>
+    <root id="archive" name="FileDemo.jar">
+      <element id="module-output" name="FileDemo" />
+    </root>
+  </artifact>
+</component>
