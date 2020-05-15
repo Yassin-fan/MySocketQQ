@@ -173,6 +173,7 @@ public class SendFile extends Thread{
 		public void actionPerformed(ActionEvent e3){
 			try {
 //				监听到取消发送
+//				System.out.println("为什么不能结束呢");
 				label.setText(" 取消发送,连接关闭");
 				JOptionPane.showMessageDialog(frame, "取消发送给，连接关闭!", "提示：", JOptionPane.INFORMATION_MESSAGE);
 				dis.close();
@@ -180,6 +181,8 @@ public class SendFile extends Thread{
 				rad.close();
 				frame.dispose();
 				socket.close();
+				System.out.println("为什么不能结束呢");
+				System.exit(0);
 			} catch (IOException e1) {
 
 			}

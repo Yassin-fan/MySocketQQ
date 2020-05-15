@@ -34,6 +34,11 @@ public class ReceiveFile extends Thread{
 	private DataOutputStream dos;
 	private RandomAccessFile rad;
 	private JLabel label;
+
+
+	JPanel barPanel=new JPanel();
+
+
 	
 	  public ReceiveFile(){
 		   frame=new JFrame("接收文件");
@@ -49,6 +54,7 @@ public class ReceiveFile extends Thread{
 
     public void run(){
 	  	while (true){
+			System.out.println("运行ing");
 
 			try {
 				socket=connectSocket.accept();
@@ -102,38 +108,38 @@ public class ReceiveFile extends Thread{
 					int barOffset=(int)(size/1024);
 
 					//传输界面
-					frame.setSize(300,120);
-					contentPanel =frame.getContentPane();
-					contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-					progressbar = new JProgressBar();//进度条
-
-					label=new JLabel(filename+" 接收中");
-					contentPanel.add(label);
-
-					progressbar.setOrientation(JProgressBar.HORIZONTAL);
-					progressbar.setMinimum(0);
-					progressbar.setMaximum(barSize);
-					progressbar.setValue(barOffset);
-					progressbar.setStringPainted(true);
-					progressbar.setPreferredSize(new Dimension(150, 20));
-					progressbar.setBorderPainted(true);
-					progressbar.setBackground(Color.pink);
-
-					JButton cancel=new JButton("取消");
-
-					JPanel barPanel=new JPanel();
-					barPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-
-					barPanel.add(progressbar);
-					barPanel.add(cancel);
-
-					contentPanel.add(barPanel);
-
-					cancel.addActionListener(new CancelActionListener());
-
-					frame.setDefaultCloseOperation(
-							JFrame.EXIT_ON_CLOSE);
-					frame.setVisible(true);
+//					frame.setSize(300,120);
+//					contentPanel =frame.getContentPane();
+//					contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+//					progressbar = new JProgressBar();//进度条
+//
+//					label=new JLabel(filename+" 接收中");
+//					contentPanel.add(label);
+//
+//					progressbar.setOrientation(JProgressBar.HORIZONTAL);
+//					progressbar.setMinimum(0);
+//					progressbar.setMaximum(barSize);
+//					progressbar.setValue(barOffset);
+//					progressbar.setStringPainted(true);
+//					progressbar.setPreferredSize(new Dimension(150, 20));
+//					progressbar.setBorderPainted(true);
+//					progressbar.setBackground(Color.pink);
+//
+//					JButton cancel=new JButton("取消");
+//
+//
+//					barPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+//
+//					barPanel.add(progressbar);
+//					barPanel.add(cancel);
+//
+//					contentPanel.add(barPanel);
+//
+//					cancel.addActionListener(new CancelActionListener());
+//
+//					frame.setDefaultCloseOperation(
+//							JFrame.EXIT_ON_CLOSE);
+//					frame.setVisible(true);
 //			    上面这些都是设置界面的，给服务器传输的时候不需要的
 
 
@@ -144,12 +150,13 @@ public class ReceiveFile extends Thread{
 						byte[] buf=new byte[1024];
 						while((length=dis.read(buf, 0, buf.length))!=-1){
 							rad.write(buf,0,length);
-							progressbar.setValue(++barOffset);
+							++barOffset;
+//							progressbar.setValue(++barOffset);
 						}
 						System.out.println("FileReceive end...");
 					}
 
-					label.setText(filename+" 结束接收");
+//					label.setText(filename+" 结束接收");
 
 
 					dis.close();
@@ -183,8 +190,12 @@ public class ReceiveFile extends Thread{
 				dis.close();
 				dos.close();
 				rad.close();
+
+//				contentPanel.remove(barPanel);
+
 				JOptionPane.showMessageDialog(frame, "已取消接收，连接关闭！", "提示：", JOptionPane.INFORMATION_MESSAGE);	
 				label.setText(" 取消接收,连接关闭");
+				System.out.println("取消了，但是服务器还在运行");
 			} catch (IOException e1) {
 				
 			}
