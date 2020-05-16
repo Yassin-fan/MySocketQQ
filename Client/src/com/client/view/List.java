@@ -2,15 +2,16 @@ package com.client.view;
 
 
 import com.client.common.Message;
+import com.client.common.MessageKind;
 import com.client.tools.ChatManager;
+import com.client.tools.SocketManagerMap;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 
 public class List extends JFrame implements ActionListener, MouseListener {
 //    public static void main(String[] args) {
@@ -45,7 +46,8 @@ public class List extends JFrame implements ActionListener, MouseListener {
 //        sendfile.addActionListener(this);
         elements = new JLabel[10];
         for(int i = 0;i<elements.length;i++){
-            elements[i]= new JLabel(i+1+"", new ImageIcon("D:\\Code_in_IDEA\\Client\\unnamed.jpg"),JLabel.LEFT);
+            elements[i]= new JLabel(i+1+"",
+                    new ImageIcon("D:\\Code_in_IDEA\\Client\\unnamed.jpg"),JLabel.LEFT);
             elements[i].addMouseListener(this);
             elements[i].setEnabled(false);
             if (elements[i].getText().equals(myId)){
@@ -59,9 +61,33 @@ public class List extends JFrame implements ActionListener, MouseListener {
         this.setSize(250,650);
         this.setTitle("用户：" + myId);
         this.MyId = myId;
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+//        this.addWindowListener(new WindowAdapter() {
+//            public void windowClosing(WindowEvent e) {
+//                int a = JOptionPane.showConfirmDialog(null,
+//                        "确定关闭吗？", "温馨提示",
+//                        JOptionPane.YES_NO_OPTION);
+//                if (a == 0) {
+//                    try {
+//                        Message msg = new Message();
+//                        msg.setMsgkind(MessageKind.message_close);
+//                        Socket mysocket = SocketManagerMap.getThread(MyId).getSocket();
+//                        ObjectOutputStream outputStream = new ObjectOutputStream(
+//                                mysocket.getOutputStream());
+//                        outputStream.writeObject(msg);
+////                        mysocket.close();
+//                    } catch (IOException ex) {
+//                        ex.printStackTrace();
+//                    }
+//                    System.exit(0); //关闭
+//                }
+//            }
+//        });
+        this.setDefaultCloseOperation(3);
         this.setVisible(true);
+
     }
+
+
 
     @Override
     public void actionPerformed(ActionEvent e) {

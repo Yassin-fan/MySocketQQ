@@ -1,6 +1,9 @@
 package com.client.common;
 
 public class Message implements java.io.Serializable {
+
+
+
     public String getMsgkind() {
         return msgkind;
     }
@@ -15,6 +18,16 @@ public class Message implements java.io.Serializable {
     private String receiver;
     private String fname;//文件名
     private String text;
+
+//    public byte[] getByteslist() {
+//        return byteslist;
+//    }
+//
+//    public void setByteslist(byte[] byteslist) {
+//        this.byteslist = byteslist;
+//    }
+//
+//    private byte[] byteslist;
 
     public String getSendTime() {
         return sendTime;

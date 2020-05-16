@@ -11,11 +11,14 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 
 public class ConnectWithClient extends Thread{
     Socket socket;
+
+    private boolean flag = true;
 
     public ConnectWithClient(Socket socket){
         this.socket = socket;
@@ -59,11 +62,25 @@ public class ConnectWithClient extends Thread{
         }
     }
 
+    private DataInputStream dis;
+    private FileOutputStream fos;
+
+
+
+
     public void run(){
-        while (true){
+        while (flag){
             try {
+//                System.out.println("获得到了输入流吗？");
                 ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+//                System.out.println("得到了啊");
                 Message msg = (Message) objectInputStream.readObject();
+
+                if (msg.getMsgkind().equals(MessageKind.message_close)){
+                    socket.close();
+                    flag = false;
+                    System.out.println("收到关闭的消息了，flag是"+flag);
+                }
 
 //                文本信息
                 if (msg.getMsgkind().equals(MessageKind.message_text)){
@@ -84,18 +101,119 @@ public class ConnectWithClient extends Thread{
                     ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                     oos.writeObject(backmsg);
                 }
-                
-//                文件发送信息
+
+//                原版！！！！！！
+////                文件发送信息
+//                else if(msg.getMsgkind().equals(MessageKind.message_file)){
+//                    ConnectWithClient receiverThread = ClientManger.getThread(msg.getReceiver());
+//                    ObjectOutputStream oos = new ObjectOutputStream(receiverThread.socket.getOutputStream());
+//                    oos.writeObject(msg);
+//                }
+
+                //                文件发送信息
                 else if(msg.getMsgkind().equals(MessageKind.message_file)){
-                    //转发文件
-                    //取得接收人的通讯线程
-                    System.out.println("收到了msg！"+ msg.getMsgkind());
-//                    while (true);
+                    //此时已经收到先传来的msg了，我不管了。我要在这里接受文件
+//                    System.out.println("进入了文件接收代码，准备获得和sender的线程");
+                    ConnectWithClient senderThread = ClientManger.getThread(msg.getSender());
+//                    先获得了data输入流
+//                    System.out.println("得到线程，准备建立DataIn");
+                    dis = new DataInputStream(senderThread.socket.getInputStream());
+//                    System.out.println("建立成功，准备读取");
+                    String fileName = dis.readUTF();
+//                    System.out.println("读到名字了" + fileName);
+                    long fileLength = dis.readLong();
+//                    System.out.println("读到了名字和长度");
+//                    再新建一个文件，然后获得输出流，用来写
+//                    System.out.println("准备获得文件输出流，用来写");
+                    File file = new File("D:\\" + fileName);
+                    fos = new FileOutputStream(file);
+//                    System.out.println("得到成功，准备新建缓冲区");
+
+                    byte[] sendBytes = new byte[1024];
+                    int transLen = 0;
+//                    System.out.println("建立成功，准备写入");
+
+//                    为啥是死循环？
+                    int count=-1,sum=0;
+
+                    while((count=dis.read(sendBytes))!=-1){
+                        fos.write(sendBytes,0,count);
+                        sum+=count;
+//                        System.out.println("已接收" + sum + "比特");
+                        if(sum==fileLength)
+                            break;
+//                        System.out.println("能不能成功跳出？");
+                    }
+                    fos.flush();
+//                    此时，服务器已经成功收到，现在要准备发给接收方了
+//                    1.先发送一个msg，是file格式
+                    Message m = new Message();
+                    m.setSender(msg.getSender());
+                    m.setReceiver(msg.getReceiver());
+                    m.setSendTime(new Date().toString());
+                    m.setMsgkind(MessageKind.message_file);
+                    m.setFname(fileName);
+
+//                    2.获取接收方的socket，准备发送
                     ConnectWithClient receiverThread = ClientManger.getThread(msg.getReceiver());
+                    System.out.println("准备建立接收方的Object");
                     ObjectOutputStream oos = new ObjectOutputStream(receiverThread.socket.getOutputStream());
+                    System.out.println("建立成功！");
                     oos.writeObject(msg);
+                    System.out.println("发送msg成功！");
+
+//                    3.发送msg完了，准备发送文件了。这个时候的函数其实和chat里的发送一模一样
+                    System.out.println("准备建立接收方的Data");
+                    DataOutputStream dos = new DataOutputStream(receiverThread.socket.getOutputStream());
+                    System.out.println("建立成功！");
+//            发送文件名和长度
+                    dos.writeUTF(file.getName());
+                    dos.flush();
+                    dos.writeLong(file.length());
+                    dos.flush();
+                    System.out.println("发送文件名和长度成功！");
+
+//            新建缓冲区
+                    byte[] sendToReceiverBytes = new byte[1024];
+                    int Receiverlength = 0;
+//            获取文件的输入流，为了读取文件
+                    System.out.println("准备创建发送的文件输入流");
+                    FileInputStream fis = new FileInputStream(file);
+                    System.out.println("创建成功！");
+                    while((Receiverlength = fis.read(sendToReceiverBytes, 0, sendToReceiverBytes.length)) > 0){
+                        dos.write(sendToReceiverBytes, 0, Receiverlength);
+                        dos.flush();
+                    }
+                    System.out.println("已经将文件全部发给客户端！");
+//                dos.close();
+
+//                    System.out.println("写入成功了啊");
+
+//                    while(true){
+////                        System.out.println("read用来获取输入的字节");
+//                        int read = 0;
+//                        read = dis.read(sendBytes);
+////                        System.out.println(""获取到进行判断);
+////                        没关系，此处有跳出
+//                        if(read == -1)
+//                            break;
+//
+//                        transLen += read;
+////                        System.out.println("接收文件进度" + 100 * transLen/fileLength + "%...");
+////                        写入
+//                        fos.write(sendBytes, 0, read);
+//                        fos.flush();
+//                        System.out.println("写入成功了啊");
+//                        System.out.println("但是没法再次获得输入流了，迷惑");
+////                        continue;
+////                        原来是在这里死循环了啊，怪不得呢。缕一下思路
+////                        是因为没有结束标志位！！！！
+//                    }
+
+//                    ObjectOutputStream oos = new ObjectOutputStream(receiverThread.socket.getOutputStream());
+//                    oos.writeObject(msg);
                 }
-                
+
 //                else if(msg.getMsgkind().equals(MessageKind.message_file)){
 //                    System.out.println("1");
 //
